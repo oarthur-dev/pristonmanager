@@ -1,0 +1,43 @@
+name: Deploy to Netlify with SQL Server container
+
+on:
+  push:
+    branches:
+      - main  # ou a branch que você estiver usando
+
+jobs:
+  setup_sqlserver_and_deploy:
+    runs-on: ubuntu-latest  # ou outro sistema operacional de sua escolha
+
+    steps:
+    # Passo 1: Check-out do código
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    # Passo 2: Rodar o container Docker com SQL Server
+    - name: Set up Docker container with SQL Server
+      run: |
+        docker pull mcr.microsoft.com/mssql/server:2019-latest
+        docker run -e 'ACCEPT_EULA=Y' -e 'MSSQL_SA_PASSWORD=78124770aA.' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
+        # Espera o SQL Server estar pronto (alguns segundos de espera)
+        sleep 30
+
+    # Passo 3: Rodar testes ou outras configurações, se necessário
+    # - name: Run Tests
+    #   run: npm run test  # ou qualquer comando que você precise
+
+    # Passo 4: Build da aplicação (exemplo para aplicação Next.js)
+    - name: Install dependencies and build app
+      run: |
+        npm install
+        npm run build  # ou o comando que você usa para o build
+
+    # Passo 5: Deploy para o Netlify
+    - name: Deploy to Netlify
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      run: |
+        npm install -g netlify-cli
+        netlify deploy --dir=./out --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN --prod
+
