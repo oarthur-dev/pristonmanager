@@ -31,6 +31,9 @@ jobs:
       run: |
         npm install
         npm run build  # ou o comando que você usa para o build
+      env:
+        VITE_SUPABASE_URL: true
+        VITE_SUPABASE_ANON_KEY: true
 
     # Passo 5: Deploy para o Netlify
     - name: Deploy to Netlify
